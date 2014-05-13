@@ -9,11 +9,11 @@ import (
 
 // Conductor
 //
-// Micro-Framework to orchestrate a clean shutdown of services, ensure
+// Nano-Framework to orchestrate a clean shutdown of services, ensure
 // routines have finished and close registered closers.
 type Conductor struct {
 	wg   *sync.WaitGroup
-	mu   *sync.Mutex
+	mu   *sync.RWMutex
 	cl   []io.Closer
 	errf func(error)
 }
@@ -23,7 +23,7 @@ type Conductor struct {
 func NewConductor(errf func(error)) (cond *Conductor) {
 	return &Conductor{
 		wg:   &sync.WaitGroup{},
-		mu:   &sync.Mutex{},
+		mu:   &sync.RWMutex{},
 		errf: errf,
 	}
 }
@@ -32,6 +32,9 @@ func NewConductor(errf func(error)) (cond *Conductor) {
 // against the Conductor. This will ensure that the
 // routine has finished before exiting the program.
 func (c *Conductor) Go(f func()) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	c.wg.Add(1)
 	go func() {
 		defer c.wg.Done()
@@ -43,8 +46,8 @@ func (c *Conductor) Go(f func()) {
 // closed before the program exits and that any errors
 // returned on Close are delegated to the handler function.
 func (c *Conductor) RegisterClosers(cl ...io.Closer) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	c.cl = append(c.cl, cl...)
 }
