@@ -12,8 +12,8 @@ import (
 // Micro-Framework to orchestrate a clean shutdown of services, ensure
 // routines have finished and close registered closers.
 type Conductor struct {
-	wg   sync.WaitGroup
-	mu   sync.Mutex
+	wg   *sync.WaitGroup
+	mu   *sync.Mutex
 	cl   []io.Closer
 	errf func(error)
 }
@@ -21,7 +21,11 @@ type Conductor struct {
 // Constructor a new Conductor with a function for
 // handling errors on calls to Close (errf).
 func NewConductor(errf func(error)) (cond *Conductor) {
-	return &Conductor{errf: errf}
+	return &Conductor{
+		wg:   &sync.WaitGroup{},
+		mu:   &sync.Mutex{},
+		errf: errf,
+	}
 }
 
 // Go sends a function in a go routine and register it
