@@ -1,15 +1,14 @@
 package conductor
 
 import (
-	"github.com/e-dard/signalman"
 	"io"
 	"sync"
 	"syscall"
+
+	"github.com/e-dard/signalman"
 )
 
-// Conductor
-//
-// Nano-Framework to orchestrate a clean shutdown of services, ensure
+// Conductor Nano-Framework to orchestrate a clean shutdown of services, ensure
 // routines have finished and close registered closers.
 type Conductor struct {
 	wg   *sync.WaitGroup
@@ -18,8 +17,8 @@ type Conductor struct {
 	errf func(error)
 }
 
-// Constructor a new Conductor with a function for
-// handling errors on calls to Close (errf).
+// NewConductor constructs a new Conductor with a function
+// for handling errors on calls to Close (errf).
 func NewConductor(errf func(error)) (cond *Conductor) {
 	return &Conductor{
 		wg:   &sync.WaitGroup{},
